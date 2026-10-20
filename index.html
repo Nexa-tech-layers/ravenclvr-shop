@@ -82,6 +82,9 @@ section{padding:52px 0}
 .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
 .btn.ghost:hover{border-color:var(--gold);color:var(--gold);background:transparent}
 
+.flip{position:absolute;right:12px;bottom:12px;background:rgba(10,10,12,.78);border:1px solid var(--gold-dim);color:var(--gold);font:500 9.5px var(--sans);letter-spacing:.2em;padding:7px 11px;cursor:pointer}
+.flip:hover{border-color:var(--gold)}
+
 /* ---------- how it works ---------- */
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:30px;border-top:1px solid var(--line);padding-top:34px}
 .step .n{font-family:var(--serif);font-size:26px;color:var(--gold)}
@@ -112,6 +115,7 @@ footer{border-top:1px solid var(--line);padding:44px 0 60px;margin-top:20px}
     <a class="brand" href="#"><img src="assets/monogram_gold.png" alt=""><b>RAVENCLVR</b></a>
     <nav class="links">
       <a href="#drop" >The Drop</a>
+      <a href="#tees">Tees &amp; Layers</a>
       <a href="#capsule">Polo Capsule</a>
       <a href="#how">How It Works</a>
       <a href="#archive">Archive</a>
@@ -140,6 +144,16 @@ footer{border-top:1px solid var(--line);padding:44px 0 60px;margin-top:20px}
       <div class="note">STREETWEAR · READY TO SHIP</div>
     </div>
     <div class="grid" id="gridDrop"></div>
+  </div>
+</section>
+
+<section id="tees" style="border-top:1px solid var(--line)">
+  <div class="wrap">
+    <div class="secthead">
+      <h2>Tees &amp; Layers</h2>
+      <div class="note">OVERSIZED · HEAVYWEIGHT · TAP VIEW BACK TO TURN A PIECE</div>
+    </div>
+    <div class="grid" id="gridTees"></div>
   </div>
 </section>
 
@@ -214,6 +228,12 @@ const PIECES = [
   { group:"drop", name:"Internal Horizon Mask", kind:"REFLECTIVE HOOD · UNISEX", img:"assets/drop_mask.jpg",
     quote:"Night has a new uniform. Never hide the face you hide in.",
     price:220000, usd:"~$141.54", left:30 },
+  { group:"tees", name:"Intention Sequence 27", kind:"OVERSIZED TEE · BLACK / AMBER", imgs:["assets/tee27_front.jpg","assets/tee27_back.jpg"],
+    quote:"Clarity over chaos.", price:90000, usd:"~$58.06", left:30 },
+  { group:"tees", name:"The Collar Tee", kind:"OVERSIZED TEE · BLACK / TAN", imgs:["assets/collar_front.jpg","assets/collar_back.jpg"],
+    price:null, left:30 },
+  { group:"tees", name:"Forest Varsity", kind:"COLLARED SWEATSHIRT · FOREST / CREAM", imgs:["assets/varsity_front.jpg"],
+    price:null, left:30 },
   { group:"capsule", name:"CLVR Essence™", kind:"POLO · BONE WHITE", img:"assets/polo_essence.jpg",
     quote:"Simplicity is intelligence.", price:null, left:30 },
   { group:"capsule", name:"Chaos Control™", kind:"POLO · RAVEN BLACK", img:"assets/polo_chaos.jpg",
@@ -231,31 +251,41 @@ function card(p){
   const wa = m => "https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(m);
   let priceLine;
   if (p.price && PAYSTACK) {
-    priceLine = `<div class="price">${naira(p.price)}<small>${p.usd}</small></div>
+    priceLine = `<div class="price">${naira(p.price)}${p.usd?`<small>${p.usd}</small>`:""}</div>
        <a class="btn" href="${PAYSTACK}" target="_blank" rel="noopener">BUY NOW</a>`;
   } else if (p.price) {
-    priceLine = `<div class="price">${naira(p.price)}<small>${p.usd}</small></div>
+    priceLine = `<div class="price">${naira(p.price)}${p.usd?`<small>${p.usd}</small>`:""}</div>
        <a class="btn" href="${wa("Hi RAVENCLVR — I want the "+p.name+" ("+naira(p.price)+").")}" target="_blank" rel="noopener">ORDER ON WHATSAPP</a>`;
   } else {
     priceLine = `<div class="price">Price on request<small>ASK US TODAY</small></div>
        <a class="btn" href="${wa("Hi RAVENCLVR — what is the price of the "+p.name+"?")}" target="_blank" rel="noopener">ENQUIRE</a>`;
   }
   return `<article class="card">
-    <div class="shot">
-      <img src="${p.img}" alt="${p.name}" loading="lazy">
+    <div class="shot"${p.imgs?` data-imgs='${JSON.stringify(p.imgs)}'`:""}>
+      <img src="${p.imgs?p.imgs[0]:p.img}" alt="${p.name}" loading="lazy">
       <div class="tag${sold?" sold":""}">${sold?"SOLD OUT":p.left+" OF 30 LEFT"}</div>
+      ${p.imgs&&p.imgs.length>1?`<button class="flip" data-i="0" aria-label="Show the back">VIEW BACK</button>`:""}
     </div>
     <div class="body">
       <div class="piece">${p.name}</div>
       <div class="kind">${p.kind}</div>
-      <div class="quote">“${p.quote}”</div>
+      ${p.quote?`<div class="quote">“${p.quote}”</div>`:""}
       <div class="buyrow">${priceLine}</div>
     </div>
   </article>`;
 }
 
 document.getElementById("gridDrop").innerHTML    = PIECES.filter(p=>p.group==="drop").map(card).join("");
+document.getElementById("gridTees").innerHTML    = PIECES.filter(p=>p.group==="tees").map(card).join("");
 document.getElementById("gridCapsule").innerHTML = PIECES.filter(p=>p.group==="capsule").map(card).join("");
+
+document.addEventListener("click", e => {
+  const b = e.target.closest(".flip"); if (!b) return;
+  const shot = b.closest(".shot"), arr = JSON.parse(shot.dataset.imgs);
+  const i = (+b.dataset.i + 1) % arr.length; b.dataset.i = i;
+  shot.querySelector("img").src = arr[i];
+  b.textContent = i === 0 ? "VIEW BACK" : "VIEW FRONT";
+});
 
 const wa = "https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent("Hi RAVENCLVR — I want to buy a piece.");
 document.getElementById("waBtn").href = wa;
